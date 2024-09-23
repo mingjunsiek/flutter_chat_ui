@@ -103,7 +103,8 @@ class _ChatListState extends State<ChatList>
           final message1 = item1['message']! as types.Message;
           final message2 = item2['message']! as types.Message;
 
-          return message1.id == message2.id;
+          return message1.author.id == message2.author.id &&
+              message1.createdAt == message2.createdAt;
         } else {
           return item1 == item2;
         }
