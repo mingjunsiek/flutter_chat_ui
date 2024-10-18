@@ -175,6 +175,7 @@ class Message extends StatelessWidget {
     types.TextMessage, {
     required int messageWidth,
     required bool showName,
+    required TextMessage defaultTextMessage,
   })? textMessageBuilder;
 
   /// See [TextMessage.options].
@@ -259,23 +260,25 @@ class Message extends StatelessWidget {
               );
       case types.MessageType.text:
         final textMessage = message as types.TextMessage;
+        final messageWidget = TextMessage(
+          emojiEnlargementBehavior: emojiEnlargementBehavior,
+          hideBackgroundOnEmojiMessages: hideBackgroundOnEmojiMessages,
+          message: textMessage,
+          nameBuilder: nameBuilder,
+          onPreviewDataFetched: onPreviewDataFetched,
+          options: textMessageOptions,
+          showName: showName,
+          usePreviewData: usePreviewData,
+          userAgent: userAgent,
+        );
         return textMessageBuilder != null
             ? textMessageBuilder!(
                 textMessage,
                 messageWidth: messageWidth,
                 showName: showName,
+                defaultTextMessage: messageWidget,
               )
-            : TextMessage(
-                emojiEnlargementBehavior: emojiEnlargementBehavior,
-                hideBackgroundOnEmojiMessages: hideBackgroundOnEmojiMessages,
-                message: textMessage,
-                nameBuilder: nameBuilder,
-                onPreviewDataFetched: onPreviewDataFetched,
-                options: textMessageOptions,
-                showName: showName,
-                usePreviewData: usePreviewData,
-                userAgent: userAgent,
-              );
+            : messageWidget;
       case types.MessageType.video:
         final videoMessage = message as types.VideoMessage;
         return videoMessageBuilder != null

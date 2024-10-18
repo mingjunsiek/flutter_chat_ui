@@ -15,18 +15,18 @@ import 'user_name.dart';
 /// A class that represents text message widget with optional link preview.
 class TextMessage extends StatelessWidget {
   /// Creates a text message widget from a [types.TextMessage] class.
-  const TextMessage({
-    super.key,
-    required this.emojiEnlargementBehavior,
-    required this.hideBackgroundOnEmojiMessages,
-    required this.message,
-    this.nameBuilder,
-    this.onPreviewDataFetched,
-    this.options = const TextMessageOptions(),
-    required this.showName,
-    required this.usePreviewData,
-    this.userAgent,
-  });
+  const TextMessage(
+      {super.key,
+      required this.emojiEnlargementBehavior,
+      required this.hideBackgroundOnEmojiMessages,
+      required this.message,
+      this.nameBuilder,
+      this.onPreviewDataFetched,
+      this.options = const TextMessageOptions(),
+      required this.showName,
+      required this.usePreviewData,
+      this.userAgent,
+      this.bodyTextStyle});
 
   /// See [Message.emojiEnlargementBehavior].
   final EmojiEnlargementBehavior emojiEnlargementBehavior;
@@ -56,6 +56,36 @@ class TextMessage extends StatelessWidget {
 
   /// User agent to fetch preview data with.
   final String? userAgent;
+
+  /// Override default bodyTextStyle
+  final TextStyle? bodyTextStyle;
+
+  TextMessage copyWith({
+    EmojiEnlargementBehavior? emojiEnlargementBehavior,
+    bool? hideBackgroundOnEmojiMessages,
+    types.TextMessage? message,
+    Widget Function(types.User)? nameBuilder,
+    void Function(types.TextMessage, types.PreviewData)? onPreviewDataFetched,
+    TextMessageOptions? options,
+    bool? showName,
+    bool? usePreviewData,
+    String? userAgent,
+    TextStyle? bodyTextStyle,
+  }) =>
+      TextMessage(
+        emojiEnlargementBehavior:
+            emojiEnlargementBehavior ?? this.emojiEnlargementBehavior,
+        hideBackgroundOnEmojiMessages:
+            hideBackgroundOnEmojiMessages ?? this.hideBackgroundOnEmojiMessages,
+        message: message ?? this.message,
+        nameBuilder: nameBuilder ?? this.nameBuilder,
+        onPreviewDataFetched: onPreviewDataFetched ?? this.onPreviewDataFetched,
+        options: options ?? this.options,
+        showName: showName ?? this.showName,
+        usePreviewData: usePreviewData ?? this.usePreviewData,
+        userAgent: userAgent ?? this.userAgent,
+        bodyTextStyle: bodyTextStyle ?? this.bodyTextStyle,
+      );
 
   Widget _linkPreview(
     types.User user,
@@ -111,9 +141,11 @@ class TextMessage extends StatelessWidget {
     final bodyLinkTextStyle = user.id == message.author.id
         ? InheritedChatTheme.of(context).theme.sentMessageBodyLinkTextStyle
         : InheritedChatTheme.of(context).theme.receivedMessageBodyLinkTextStyle;
-    final bodyTextStyle = user.id == message.author.id
-        ? theme.sentMessageBodyTextStyle
-        : theme.receivedMessageBodyTextStyle;
+    final _bodyTextStyle = bodyTextStyle != null
+        ? bodyTextStyle!
+        : user.id == message.author.id
+            ? theme.sentMessageBodyTextStyle
+            : theme.receivedMessageBodyTextStyle;
     final boldTextStyle = user.id == message.author.id
         ? theme.sentMessageBodyBoldTextStyle
         : theme.receivedMessageBodyBoldTextStyle;
@@ -137,7 +169,7 @@ class TextMessage extends StatelessWidget {
         else
           TextMessageText(
             bodyLinkTextStyle: bodyLinkTextStyle,
-            bodyTextStyle: bodyTextStyle,
+            bodyTextStyle: _bodyTextStyle,
             boldTextStyle: boldTextStyle,
             codeTextStyle: codeTextStyle,
             options: options,
