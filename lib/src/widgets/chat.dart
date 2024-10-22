@@ -263,7 +263,8 @@ class Chat extends StatefulWidget {
   final void Function(BuildContext context, types.Message)? onMessageTap;
 
   /// See [Message.onMessageVisibilityChanged].
-  final void Function(types.Message, bool visible)? onMessageVisibilityChanged;
+  final void Function(types.Message, double visibleFraction)?
+      onMessageVisibilityChanged;
 
   /// See [Message.onPreviewDataFetched].
   final void Function(types.TextMessage, types.PreviewData)?

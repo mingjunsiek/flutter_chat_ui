@@ -127,7 +127,8 @@ void main() {
             onPreviewDataFetched:
                 (types.TextMessage message, types.PreviewData previewData) =>
                     {},
-            onMessageVisibilityChanged: (m, visible) {
+            onMessageVisibilityChanged: (m, visibleFraction) {
+              final visible = visibleFraction > 0.1;
               if (visible) {
                 messagesVisible.add(m.id);
               } else {

@@ -143,7 +143,8 @@ class Message extends StatelessWidget {
   final void Function(BuildContext context, types.Message)? onMessageTap;
 
   /// Called when the message's visibility changes.
-  final void Function(types.Message, bool visible)? onMessageVisibilityChanged;
+  final void Function(types.Message, double visibleFraction)?
+      onMessageVisibilityChanged;
 
   /// See [TextMessage.onPreviewDataFetched].
   final void Function(types.TextMessage, types.PreviewData)?
@@ -390,7 +391,7 @@ class Message extends StatelessWidget {
                           onVisibilityChanged: (visibilityInfo) =>
                               onMessageVisibilityChanged!(
                             message,
-                            visibilityInfo.visibleFraction > 0.1,
+                            visibilityInfo.visibleFraction,
                           ),
                           child: _bubbleBuilder(
                             context,
