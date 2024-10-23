@@ -104,6 +104,7 @@ class Chat extends StatefulWidget {
     this.slidableMessageBuilder,
     this.isLeftStatus = false,
     this.messageWidthRatio = 0.72,
+    this.customWidgetAfterMessageBuilder,
   });
 
   /// See [Message.audioMessageBuilder].
@@ -292,6 +293,9 @@ class Chat extends StatefulWidget {
 
   /// Builds a system message outside of any bubble.
   final Widget Function(types.SystemMessage)? systemMessageBuilder;
+
+  /// Custom widget that is shown after the message
+  final Widget Function(types.Message)? customWidgetAfterMessageBuilder;
 
   /// See [Message.textMessageBuilder].
   final Widget Function(
@@ -491,7 +495,7 @@ class ChatState extends State<Chat> {
                 ?.call(message, messageWidth: messageWidth) ??
             const SizedBox();
       } else {
-        final Widget msgWidget = Message(
+        Widget msgWidget = Message(
           audioMessageBuilder: widget.audioMessageBuilder,
           avatarBuilder: widget.avatarBuilder,
           bubbleBuilder: widget.bubbleBuilder,
@@ -534,9 +538,21 @@ class ChatState extends State<Chat> {
           userAgent: widget.userAgent,
           videoMessageBuilder: widget.videoMessageBuilder,
         );
-        messageWidget = widget.slidableMessageBuilder == null
-            ? msgWidget
-            : widget.slidableMessageBuilder!(message, msgWidget);
+
+        if (widget.slidableMessageBuilder != null) {
+          msgWidget = widget.slidableMessageBuilder!(message, msgWidget);
+        }
+        if (widget.customWidgetAfterMessageBuilder != null) {
+          msgWidget = Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              msgWidget,
+              widget.customWidgetAfterMessageBuilder!.call(message),
+            ],
+          );
+        }
+        messageWidget = msgWidget;
       }
 
       return AutoScrollTag(
