@@ -100,6 +100,9 @@ bool isConsistsOfEmojis(
 final isMobile = defaultTargetPlatform == TargetPlatform.android ||
     defaultTargetPlatform == TargetPlatform.iOS;
 
+bool canGroupMessage(types.MessageType type) =>
+    type != types.MessageType.custom && type != types.MessageType.system;
+
 /// Parses provided messages to chat messages (with headers and spacers)
 /// and returns them with a gallery.
 List<Object> calculateChatMessages(
@@ -174,9 +177,14 @@ List<Object> calculateChatMessages(
             isUtc: dateIsUtc,
           ).day;
 
+      final canGroupNextMessage =
+          canGroupMessage(message.type) && canGroupMessage(nextMessage.type);
+
       nextMessageInGroup = nextMessageSameAuthor &&
           message.id != lastReadMessageId &&
-          nextMessage.createdAt! - message.createdAt! <= groupMessagesThreshold;
+          nextMessage.createdAt! - message.createdAt! <=
+              groupMessagesThreshold &&
+          canGroupNextMessage;
     }
 
     if (isFirst && messageHasCreatedAt) {
