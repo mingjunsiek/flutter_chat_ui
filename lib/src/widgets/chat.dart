@@ -5,6 +5,7 @@ import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:intl/intl.dart';
 import 'package:photo_view/photo_view.dart' show PhotoViewComputedScale;
 import 'package:scroll_to_index/scroll_to_index.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 import '../chat_l10n.dart';
 import '../chat_theme.dart';
@@ -488,12 +489,33 @@ class ChatState extends State<Chat> {
                 ).floor();
 
       if (message is types.SystemMessage) {
-        messageWidget = widget.systemMessageBuilder?.call(message) ??
+        final systemMessage = widget.systemMessageBuilder?.call(message) ??
             SystemMessage(message: message.text);
+        messageWidget = widget.onMessageVisibilityChanged != null
+            ? VisibilityDetector(
+                key: Key(message.id),
+                onVisibilityChanged: (visibilityInfo) =>
+                    widget.onMessageVisibilityChanged!(
+                  message,
+                  visibilityInfo.visibleFraction,
+                ),
+                child: systemMessage,
+              )
+            : systemMessage;
       } else if (message is types.CustomMessage) {
-        messageWidget = widget.customMessageBuilder
+        final customMessage = widget.customMessageBuilder
                 ?.call(message, messageWidth: messageWidth) ??
             const SizedBox();
+        messageWidget = widget.onMessageVisibilityChanged != null
+            ? VisibilityDetector(
+                key: Key(message.id),
+                onVisibilityChanged: (visibilityInfo) =>
+                    widget.onMessageVisibilityChanged!(
+                      message,
+                      visibilityInfo.visibleFraction,
+                    ),
+                child: customMessage)
+            : customMessage;
       } else {
         Widget msgWidget = Message(
           audioMessageBuilder: widget.audioMessageBuilder,
