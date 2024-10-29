@@ -12,6 +12,7 @@ class ChatList extends StatefulWidget {
   /// Creates a chat list widget.
   const ChatList({
     super.key,
+    this.topWidget,
     this.bottomWidget,
     required this.bubbleRtlAlignment,
     this.isLastPage,
@@ -25,6 +26,9 @@ class ChatList extends StatefulWidget {
     this.typingIndicatorOptions,
     required this.useTopSafeAreaInset,
   });
+
+  /// A custom to display at the top of the message list
+  final Widget? topWidget;
 
   /// A custom widget at the bottom of the list.
   final Widget? bottomWidget;
@@ -316,6 +320,8 @@ class _ChatListState extends State<ChatList>
                     _newMessageBuilder(index, animation),
               ),
             ),
+            if (widget.topWidget != null)
+              SliverToBoxAdapter(child: widget.topWidget),
             SliverPadding(
               padding: EdgeInsets.only(
                 top: 16 +

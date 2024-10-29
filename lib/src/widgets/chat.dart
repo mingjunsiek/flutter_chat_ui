@@ -70,6 +70,7 @@ class Chat extends StatefulWidget {
     this.isLastPage,
     this.keyboardDismissBehavior = ScrollViewKeyboardDismissBehavior.manual,
     this.l10n = const ChatL10nEn(),
+    this.customTopWidget,
     this.listBottomWidget,
     required this.messages,
     this.nameBuilder,
@@ -222,6 +223,9 @@ class Chat extends StatefulWidget {
   /// existing one, like the default [ChatL10nEn]. You can customize only
   /// certain properties, see more here [ChatL10nEn].
   final ChatL10n l10n;
+
+  /// Custom widget to be display at the top of the message list
+  final Widget? customTopWidget;
 
   /// See [ChatList.bottomWidget]. For a custom chat input
   /// use [customBottomWidget] instead.
@@ -691,6 +695,7 @@ class ChatState extends State<Chat> {
                                     BoxConstraints constraints,
                                   ) =>
                                       ChatList(
+                                    topWidget: widget.customTopWidget,
                                     bottomWidget: widget.listBottomWidget,
                                     bubbleRtlAlignment:
                                         widget.bubbleRtlAlignment!,
