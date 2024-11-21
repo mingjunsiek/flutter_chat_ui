@@ -98,6 +98,8 @@ class _ChatListState extends State<ChatList>
     didUpdateWidget(widget);
   }
 
+  String getMessageId(types.Message msg) => '${msg.author.id}-${msg.createdAt}';
+
   void _calculateDiffs(List<Object> oldList) async {
     final diffResult = calculateListDiff<Object>(
       oldList,
@@ -106,9 +108,7 @@ class _ChatListState extends State<ChatList>
         if (item1 is Map<String, Object> && item2 is Map<String, Object>) {
           final message1 = item1['message']! as types.Message;
           final message2 = item2['message']! as types.Message;
-
-          return message1.author.id == message2.author.id &&
-              message1.createdAt == message2.createdAt;
+          return getMessageId(message1) == getMessageId(message2);
         } else {
           return item1 == item2;
         }
@@ -198,7 +198,7 @@ class _ChatListState extends State<ChatList>
   }
 
   Key? _valueKeyForItem(Object item) =>
-      _mapMessage(item, (message) => ValueKey(message.id));
+      _mapMessage(item, (message) => ValueKey(getMessageId(message)));
 
   T? _mapMessage<T>(Object maybeMessage, T Function(types.Message) f) {
     if (maybeMessage is Map<String, Object>) {
