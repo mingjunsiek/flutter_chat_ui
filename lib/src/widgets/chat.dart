@@ -107,6 +107,7 @@ class Chat extends StatefulWidget {
     this.isLeftStatus = false,
     this.messageWidthRatio = 0.72,
     this.customWidgetAfterMessageBuilder,
+    this.scrollBottomOffset = 70.0,
   });
 
   /// See [Message.audioMessageBuilder].
@@ -353,6 +354,9 @@ class Chat extends StatefulWidget {
   /// Width ratio for message bubble.
   final double messageWidthRatio;
 
+  /// Offset of scroll bottom button
+  final double scrollBottomOffset;
+
   @override
   State<Chat> createState() => ChatState();
 }
@@ -367,14 +371,25 @@ class ChatState extends State<Chat> {
   PageController? _galleryPageController;
   bool _hadScrolledToUnreadOnOpen = false;
   bool _isImageViewVisible = false;
+  final ValueNotifier<bool> _showScrollToBottom = ValueNotifier(false);
 
   late final AutoScrollController _scrollController;
+
+  void scrollControllerListener() {
+    final position = _scrollController.position;
+    // We only show the scroll bottom button after passing the offset
+    final showScrollBottomButton = position.pixels >= widget.scrollBottomOffset;
+    // If current _showScrollToBottom value is the same as showScrollBottomButton, we early return to reduce number of re-rendering
+    if (_showScrollToBottom.value == showScrollBottomButton) return;
+    _showScrollToBottom.value = showScrollBottomButton;
+  }
 
   @override
   void initState() {
     super.initState();
 
     _scrollController = widget.scrollController ?? AutoScrollController();
+    _scrollController.addListener(scrollControllerListener);
 
     didUpdateWidget(widget);
   }
@@ -662,6 +677,7 @@ class ChatState extends State<Chat> {
   @override
   void dispose() {
     _galleryPageController?.dispose();
+    _scrollController.removeListener(scrollControllerListener);
     _scrollController.dispose();
     super.dispose();
   }
@@ -730,6 +746,29 @@ class ChatState extends State<Chat> {
                             options: widget.inputOptions,
                           ),
                     ],
+                  ),
+                ),
+                ValueListenableBuilder<bool>(
+                  valueListenable: _showScrollToBottom,
+                  builder: (context, value, child) {
+                    if (!value || child == null) return const SizedBox();
+                    return child;
+                  },
+                  child: Positioned(
+                    bottom: 88,
+                    right: 8,
+                    width: 40,
+                    height: 40,
+                    child: FloatingActionButton(
+                      backgroundColor: Colors.white,
+                      child: const Icon(
+                        Icons.keyboard_arrow_down_sharp,
+                        color: Colors.black,
+                      ),
+                      onPressed: () {
+                        _scrollController.jumpTo(0);
+                      },
+                    ),
                   ),
                 ),
                 if (_isImageViewVisible)
