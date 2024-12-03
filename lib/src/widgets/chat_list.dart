@@ -27,7 +27,7 @@ class ChatList extends StatefulWidget {
     required this.useTopSafeAreaInset,
   });
 
-  /// A custom to display at the top of the message list
+  /// A custom to display at the top of the message list.
   final Widget? topWidget;
 
   /// A custom widget at the bottom of the list.
@@ -124,7 +124,7 @@ class _ChatListState extends State<ChatList>
           final item = oldList[pos];
           _listKey.currentState?.removeItem(
             pos,
-            (_, animation) => _removedMessageBuilder(item, animation),
+            (_, __) => widget.itemBuilder(item, null),
           );
         },
         change: (pos, payload) {},
@@ -137,31 +137,14 @@ class _ChatListState extends State<ChatList>
     _oldData = List.from(widget.items);
   }
 
-  Widget _newMessageBuilder(int index, Animation<double> animation) {
+  Widget _newMessageBuilder(int index) {
     try {
       final item = _oldData[index];
-
-      return SizeTransition(
-        key: _valueKeyForItem(item),
-        axisAlignment: -1,
-        sizeFactor: animation.drive(CurveTween(curve: Curves.easeOutQuad)),
-        child: widget.itemBuilder(item, index),
-      );
+      return widget.itemBuilder(item, index);
     } catch (e) {
       return const SizedBox();
     }
   }
-
-  Widget _removedMessageBuilder(Object item, Animation<double> animation) =>
-      SizeTransition(
-        key: _valueKeyForItem(item),
-        axisAlignment: -1,
-        sizeFactor: animation.drive(CurveTween(curve: Curves.easeInQuad)),
-        child: FadeTransition(
-          opacity: animation.drive(CurveTween(curve: Curves.easeInQuad)),
-          child: widget.itemBuilder(item, null),
-        ),
-      );
 
   // Hacky solution to reconsider.
   void _scrollToBottomIfNeeded(List<Object> oldList) {
@@ -302,22 +285,22 @@ class _ChatListState extends State<ChatList>
             ),
             SliverPadding(
               padding: InheritedChatTheme.of(context).theme.chatContentMargin,
-              sliver: SliverAnimatedList(
-                findChildIndexCallback: (Key key) {
-                  if (key is ValueKey<Object>) {
-                    final newIndex = widget.items.indexWhere(
-                      (v) => _valueKeyForItem(v) == key,
-                    );
-                    if (newIndex != -1) {
-                      return newIndex;
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  findChildIndexCallback: (Key key) {
+                    if (key is ValueKey<Object>) {
+                      final newIndex = widget.items.indexWhere(
+                        (v) => _valueKeyForItem(v) == key,
+                      );
+                      if (newIndex != -1) {
+                        return newIndex;
+                      }
                     }
-                  }
-                  return null;
-                },
-                initialItemCount: widget.items.length,
-                key: _listKey,
-                itemBuilder: (_, index, animation) =>
-                    _newMessageBuilder(index, animation),
+                    return null;
+                  },
+                  (_, index) => _newMessageBuilder(index),
+                  childCount: widget.items.length,
+                ),
               ),
             ),
             if (widget.topWidget != null)
