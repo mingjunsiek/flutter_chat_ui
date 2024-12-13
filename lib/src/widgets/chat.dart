@@ -108,6 +108,7 @@ class Chat extends StatefulWidget {
     this.messageWidthRatio = 0.72,
     this.customWidgetAfterMessageBuilder,
     this.scrollBottomOffset = 70.0,
+    this.scrollBottomFABPositioned,
   });
 
   /// See [Message.audioMessageBuilder].
@@ -225,7 +226,7 @@ class Chat extends StatefulWidget {
   /// certain properties, see more here [ChatL10nEn].
   final ChatL10n l10n;
 
-  /// Custom widget to be display at the top of the message list
+  /// Custom widget to be display at the top of the message list.
   final Widget? customTopWidget;
 
   /// See [ChatList.bottomWidget]. For a custom chat input
@@ -300,7 +301,7 @@ class Chat extends StatefulWidget {
   /// Builds a system message outside of any bubble.
   final Widget Function(types.SystemMessage)? systemMessageBuilder;
 
-  /// Custom widget that is shown after the message
+  /// Custom widget that is shown after the message.
   final Widget Function(types.Message)? customWidgetAfterMessageBuilder;
 
   /// See [Message.textMessageBuilder].
@@ -354,8 +355,11 @@ class Chat extends StatefulWidget {
   /// Width ratio for message bubble.
   final double messageWidthRatio;
 
-  /// Offset of scroll bottom button
+  /// Offset to display scroll bottom button.
   final double scrollBottomOffset;
+
+  /// Scroll bottom button position.
+  final Positioned Function(Widget child)? scrollBottomFABPositioned;
 
   @override
   State<Chat> createState() => ChatState();
@@ -377,9 +381,9 @@ class ChatState extends State<Chat> {
 
   void scrollControllerListener() {
     final position = _scrollController.position;
-    // We only show the scroll bottom button after passing the offset
+    // We only show the scroll bottom button after passing the offset.
     final showScrollBottomButton = position.pixels >= widget.scrollBottomOffset;
-    // If current _showScrollToBottom value is the same as showScrollBottomButton, we early return to reduce number of re-rendering
+    // If current _showScrollToBottom value is the same as showScrollBottomButton, we early return to reduce number of re-rendering.
     if (_showScrollToBottom.value == showScrollBottomButton) return;
     _showScrollToBottom.value = showScrollBottomButton;
   }
@@ -530,10 +534,11 @@ class ChatState extends State<Chat> {
                 key: Key(message.id),
                 onVisibilityChanged: (visibilityInfo) =>
                     widget.onMessageVisibilityChanged!(
-                      message,
-                      visibilityInfo.visibleFraction,
-                    ),
-                child: customMessage)
+                  message,
+                  visibilityInfo.visibleFraction,
+                ),
+                child: customMessage,
+              )
             : customMessage;
       } else {
         Widget msgWidget = Message(
@@ -683,106 +688,111 @@ class ChatState extends State<Chat> {
   }
 
   @override
-  Widget build(BuildContext context) => InheritedUser(
-        user: widget.user,
-        child: InheritedChatTheme(
-          theme: widget.theme,
-          child: InheritedL10n(
-            l10n: widget.l10n,
-            child: Stack(
-              children: [
-                Container(
-                  color: widget.theme.backgroundColor,
-                  child: Column(
-                    children: [
-                      Flexible(
-                        child: widget.messages.isEmpty
-                            ? SizedBox.expand(
-                                child: _emptyStateBuilder(),
-                              )
-                            : GestureDetector(
-                                onTap: () {
-                                  FocusManager.instance.primaryFocus?.unfocus();
-                                  widget.onBackgroundTap?.call();
-                                },
-                                child: LayoutBuilder(
-                                  builder: (
-                                    BuildContext context,
-                                    BoxConstraints constraints,
-                                  ) =>
-                                      ChatList(
-                                    topWidget: widget.customTopWidget,
-                                    bottomWidget: widget.listBottomWidget,
-                                    bubbleRtlAlignment:
-                                        widget.bubbleRtlAlignment!,
-                                    isLastPage: widget.isLastPage,
-                                    itemBuilder: (Object item, int? index) =>
-                                        _messageBuilder(
-                                      item,
-                                      constraints,
-                                      index,
-                                    ),
-                                    items: _chatMessages,
-                                    keyboardDismissBehavior:
-                                        widget.keyboardDismissBehavior,
-                                    onEndReached: widget.onEndReached,
-                                    onEndReachedThreshold:
-                                        widget.onEndReachedThreshold,
-                                    scrollController: _scrollController,
-                                    scrollPhysics: widget.scrollPhysics,
-                                    typingIndicatorOptions:
-                                        widget.typingIndicatorOptions,
-                                    useTopSafeAreaInset:
-                                        widget.useTopSafeAreaInset ?? isMobile,
+  Widget build(BuildContext context) {
+    final scrollToBottomFAB = FloatingActionButton(
+      backgroundColor: Colors.white,
+      child: const Icon(
+        Icons.keyboard_arrow_down_sharp,
+        color: Colors.black,
+      ),
+      onPressed: () {
+        _scrollController.jumpTo(0);
+      },
+    );
+    return InheritedUser(
+      user: widget.user,
+      child: InheritedChatTheme(
+        theme: widget.theme,
+        child: InheritedL10n(
+          l10n: widget.l10n,
+          child: Stack(
+            children: [
+              Container(
+                color: widget.theme.backgroundColor,
+                child: Column(
+                  children: [
+                    Flexible(
+                      child: widget.messages.isEmpty
+                          ? SizedBox.expand(
+                              child: _emptyStateBuilder(),
+                            )
+                          : GestureDetector(
+                              onTap: () {
+                                FocusManager.instance.primaryFocus?.unfocus();
+                                widget.onBackgroundTap?.call();
+                              },
+                              child: LayoutBuilder(
+                                builder: (
+                                  BuildContext context,
+                                  BoxConstraints constraints,
+                                ) =>
+                                    ChatList(
+                                  topWidget: widget.customTopWidget,
+                                  bottomWidget: widget.listBottomWidget,
+                                  bubbleRtlAlignment:
+                                      widget.bubbleRtlAlignment!,
+                                  isLastPage: widget.isLastPage,
+                                  itemBuilder: (Object item, int? index) =>
+                                      _messageBuilder(
+                                    item,
+                                    constraints,
+                                    index,
                                   ),
+                                  items: _chatMessages,
+                                  keyboardDismissBehavior:
+                                      widget.keyboardDismissBehavior,
+                                  onEndReached: widget.onEndReached,
+                                  onEndReachedThreshold:
+                                      widget.onEndReachedThreshold,
+                                  scrollController: _scrollController,
+                                  scrollPhysics: widget.scrollPhysics,
+                                  typingIndicatorOptions:
+                                      widget.typingIndicatorOptions,
+                                  useTopSafeAreaInset:
+                                      widget.useTopSafeAreaInset ?? isMobile,
                                 ),
                               ),
-                      ),
-                      widget.customBottomWidget ??
-                          Input(
-                            isAttachmentUploading: widget.isAttachmentUploading,
-                            onAttachmentPressed: widget.onAttachmentPressed,
-                            onSendPressed: widget.onSendPressed,
-                            options: widget.inputOptions,
-                          ),
-                    ],
-                  ),
-                ),
-                ValueListenableBuilder<bool>(
-                  valueListenable: _showScrollToBottom,
-                  builder: (context, value, child) {
-                    if (!value || child == null) return const SizedBox();
-                    return child;
-                  },
-                  child: Positioned(
-                    bottom: 88,
-                    right: 8,
-                    width: 40,
-                    height: 40,
-                    child: FloatingActionButton(
-                      backgroundColor: Colors.white,
-                      child: const Icon(
-                        Icons.keyboard_arrow_down_sharp,
-                        color: Colors.black,
-                      ),
-                      onPressed: () {
-                        _scrollController.jumpTo(0);
-                      },
+                            ),
                     ),
-                  ),
+                    widget.customBottomWidget ??
+                        Input(
+                          isAttachmentUploading: widget.isAttachmentUploading,
+                          onAttachmentPressed: widget.onAttachmentPressed,
+                          onSendPressed: widget.onSendPressed,
+                          options: widget.inputOptions,
+                        ),
+                  ],
                 ),
-                if (_isImageViewVisible)
-                  ImageGallery(
-                    imageHeaders: widget.imageHeaders,
-                    imageProviderBuilder: widget.imageProviderBuilder,
-                    images: _gallery,
-                    pageController: _galleryPageController!,
-                    onClosePressed: _onCloseGalleryPressed,
-                    options: widget.imageGalleryOptions,
-                  ),
-              ],
-            ),
+              ),
+              ValueListenableBuilder<bool>(
+                valueListenable: _showScrollToBottom,
+                builder: (context, value, child) {
+                  if (!value || child == null) return const SizedBox();
+                  return child;
+                },
+                child: widget.scrollBottomFABPositioned == null
+                    ? Positioned(
+                        bottom: 88,
+                        right: 8,
+                        width: 40,
+                        height: 40,
+                        child: scrollToBottomFAB,
+                      )
+                    : widget.scrollBottomFABPositioned!(scrollToBottomFAB),
+              ),
+              if (_isImageViewVisible)
+                ImageGallery(
+                  imageHeaders: widget.imageHeaders,
+                  imageProviderBuilder: widget.imageProviderBuilder,
+                  images: _gallery,
+                  pageController: _galleryPageController!,
+                  onClosePressed: _onCloseGalleryPressed,
+                  options: widget.imageGalleryOptions,
+                ),
+            ],
           ),
         ),
-      );
+      ),
+    );
+  }
 }
