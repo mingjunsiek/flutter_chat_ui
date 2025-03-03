@@ -299,7 +299,8 @@ class Chat extends StatefulWidget {
   final bool showUserNames;
 
   /// Builds a system message outside of any bubble.
-  final Widget Function(types.SystemMessage)? systemMessageBuilder;
+  final Widget Function(types.SystemMessage, BoxConstraints)?
+      systemMessageBuilder;
 
   /// Custom widget that is shown after the message.
   final Widget Function(types.Message)? customWidgetAfterMessageBuilder;
@@ -512,8 +513,9 @@ class ChatState extends State<Chat> {
                 ).floor();
 
       if (message is types.SystemMessage) {
-        final systemMessage = widget.systemMessageBuilder?.call(message) ??
-            SystemMessage(message: message.text);
+        final systemMessage =
+            widget.systemMessageBuilder?.call(message, constraints) ??
+                SystemMessage(message: message.text);
         messageWidget = widget.onMessageVisibilityChanged != null
             ? VisibilityDetector(
                 key: Key(message.id),
